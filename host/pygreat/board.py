@@ -68,16 +68,21 @@ class GreatBoard(object):
 
         # Iterate over each subclass of GreatFETBoard until we find a board
         # that accepts the given board ID.
+        print(__class__, "A")
+        print(__class__.__subclasses__())
         for subclass in cls.__subclasses__():
+            print(__class__, "B")
             if subclass.accepts_connected_device(**device_identifiers):
 
                 # Create an instance of the device to return,
                 # and ensure that device has fully populated comms APIs.
+                print(__class__, "C")
                 board = subclass(**device_identifiers)
                 board.initialize_apis()
 
                 return board
 
+        print(__class__, "D")
         # If we couldn't find a board, raise an error.
         raise DeviceNotFoundError()
 
@@ -95,6 +100,7 @@ class GreatBoard(object):
         Returns a list of GreatFET devices, which may be empty if none are found.
         """
 
+        print(__class__, "all")
         devices = []
 
         # Iterate over each subclass of GreatFETBoard until we find a board
@@ -181,6 +187,7 @@ class GreatBoard(object):
         try:
             board_id = potential_device.board_id()
         finally:
+            print("accepts_connected_device() clean-up")
             potential_device.close()
 
         # Accept only GreatFET devices whose board IDs are handled by this
@@ -223,27 +230,33 @@ class GreatBoard(object):
         array above
         """
 
+        print("ADAA")
         # By default, accept any device with the default vendor/product IDs.
         self.identifiers = self.populate_default_identifiers(device_identifiers)
+        print("ADAB")
 
         # For convenience, allow serial_number=None to be equivalent to not
         # providing a serial number: a board with any serial number will be
         # accepted.
         if 'serial_number' in self.identifiers and self.identifiers['serial_number'] is None:
             del self.identifiers['serial_number']
+        print("ADAC")
 
         # TODO: replace this with a comms_string
         # Create our backend connection to the device.
         self.comms = CommsBackend.from_device_uri(**self.identifiers)
+        print("ADAD")
 
         # Get an object that allows easy access to each of our APIs.
         self.apis = self.comms.generate_api_object()
+        print("ADAE")
 
         # TODO: optionally use the core API to discover other APIs
 
         # Final sanity check: if we don't handle this board ID, bail out!
         if self.HANDLED_BOARD_IDS and (self.board_id() not in self.HANDLED_BOARD_IDS):
             raise DeviceNotFoundError()
+        print("ADAF")
 
 
     def version_warnings(self):
