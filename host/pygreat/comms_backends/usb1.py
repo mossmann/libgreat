@@ -106,8 +106,8 @@ class USB1CommsBackend(CommsBackend):
     @classmethod
     def _destroy_libusb_context(cls):
         """ Destroys our libusb context on closing our python instance. """
-        for device in cls.device_handles:
-            device.close()
+        for handle in cls.device_handles:
+            handle.close()
         cls.context.close()
         cls.context = None
 
@@ -200,7 +200,7 @@ class USB1CommsBackend(CommsBackend):
         # The usb1.USBDevice
         self.device = None
 
-        # The usb1.UsbDeviceHandle
+        # The usb1.USBDeviceHandle
         self.device_handle = None
 
         # Zero pad serial numbers to 32 characters to match those
