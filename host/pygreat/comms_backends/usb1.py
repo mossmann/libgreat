@@ -242,8 +242,6 @@ class USB1CommsBackend(CommsBackend):
         if timeout is None:
             timeout = 0.001
 
-        # Claim the first interface on the device, which we consider the standard
-        # interface used by libgreat.
         timeout = time.time() + (timeout / 1000)
 
         # Try to open, configure, and claim until success or timeout.
@@ -251,17 +249,19 @@ class USB1CommsBackend(CommsBackend):
             try:
                 # Open the device, and get a libusb device handle.
                 self.device_handle = self.device.open()
-                USB1CommsBackend.device_handles.append(self.device_handle)
             except (usb1.USBErrorAccess, usb1.USBErrorBusy):
                 pass
 
-            if self.device_handle:
+            if self.device_handle is not None:
                 try:
                     if self.device_handle.getConfiguration() != self.LIBGREAT_CONFIGURATION:
                         self.device_handle.setConfiguration(self.LIBGREAT_CONFIGURATION)
                     self.device_handle.claimInterface(self.LIBGREAT_COMMAND_INTERFACE)
+                    USB1CommsBackend.device_handles.append(self.device_handle)
                     return
                 except (usb1.USBErrorAccess, usb1.USBErrorBusy):
+                    self.device_handle.close()
+                    self.device_handle = None
                     pass
 
             if time.time() > timeout:
