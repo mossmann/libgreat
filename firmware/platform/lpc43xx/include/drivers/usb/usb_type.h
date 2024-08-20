@@ -242,6 +242,7 @@ typedef struct {
 			const uint8_t* const qualifier_descriptor;
 			usb_configuration_t* (*configurations)[];
 			const usb_configuration_t* configuration;
+			const uint8_t* const msft_os_string_descriptor;
 
 			usb_queue_head_t queue_heads_device[12] ATTR_ALIGNED(2048);
 		};

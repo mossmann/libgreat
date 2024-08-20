@@ -114,6 +114,10 @@ static usb_request_status_t usb_send_descriptor_string(
 	usb_endpoint_t* const endpoint
 ) {
 	uint_fast8_t index = endpoint->setup.value_l;
+
+	if (index == 0xee) {
+		return usb_send_descriptor(endpoint, endpoint->device->msft_os_string_descriptor);
+	}
 	for( uint_fast8_t i=0; endpoint->device->descriptor_strings[i] != 0; i++ ) {
 		if( i == index ) {
 			return usb_send_descriptor(endpoint, endpoint->device->descriptor_strings[i]);
