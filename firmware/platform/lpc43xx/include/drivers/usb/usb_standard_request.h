@@ -34,4 +34,9 @@ bool usb_set_configuration(
 	const uint_fast8_t configuration_number
 );
 
+usb_request_status_t usb_send_descriptor(
+        usb_endpoint_t* const endpoint,
+        const uint8_t* const descriptor_data
+);
+
 #endif//__USB_STANDARD_REQUEST_H__

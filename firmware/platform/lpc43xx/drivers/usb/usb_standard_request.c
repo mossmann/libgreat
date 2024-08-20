@@ -90,7 +90,7 @@ bool usb_set_configuration(
 	return true;
 }
 
-static usb_request_status_t usb_send_descriptor(
+usb_request_status_t usb_send_descriptor(
 	usb_endpoint_t* const endpoint,
 	const uint8_t* const descriptor_data
 ) {
