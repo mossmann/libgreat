@@ -137,7 +137,6 @@ class USB1CommsBackend(CommsBackend):
         property_fetchers = {
             'idVendor':           device.getVendorID,
             'idProduct':          device.getProductID,
-            'serial_number':      device.getSerialNumber,
             'bus':                device.getBusNumber,
             'address':            device.getDeviceAddress,
             'interface_subclass': lambda: _getInterfaceSubClass(cls, device),
@@ -154,6 +153,20 @@ class USB1CommsBackend(CommsBackend):
 
                     # ... and return False if it doesn't.
                     return False
+
+        # FIXME what if there are multiple candidates and the first one is already claimed?
+        # We have to open() the device to get the serial number, so we check it
+        # separately and only if all other conditions are met.
+        if 'serial_number' in device_identifiers.keys():
+            self.device = device
+            self._hold_libgreat_interface()
+
+            # Allow a partial serial number to be specified.
+            serial_match = device_identifiers['serial_number'] in self.device_handle.getSerialNumber()
+            self._release_libgreat_interface(maintain_exclusivity=False)
+            self.device = None
+            if not serial_match:
+                return False
 
         # If we didn't fail to meet any constraints, return True.
         return True
@@ -203,10 +216,9 @@ class USB1CommsBackend(CommsBackend):
         # The usb1.USBDeviceHandle
         self.device_handle = None
 
-        # Zero pad serial numbers to 32 characters to match those
-        # provided by the USB descriptors.
-        if 'serial_number' in device_identifiers and len(device_identifiers['serial_number']) < 32:
-            device_identifiers['serial_number'] = device_identifiers['serial_number'].zfill(32)
+        # Start off with no knowledge of the device's state.
+        self._last_command_arguments = None
+        self._have_exclusive_access = False
 
         # Connect to the device that matches our identifiers.
         self.device = self._find_device(device_identifiers)
@@ -214,10 +226,6 @@ class USB1CommsBackend(CommsBackend):
         # If we couldn't find a board, bail out early.
         if self.device is None:
             raise DeviceNotFoundError()
-
-        # Start off with no knowledge of the device's state.
-        self._last_command_arguments = None
-        self._have_exclusive_access = False
 
         # Run the parent initialization.
         super(USB1CommsBackend, self).__init__(**device_identifiers)
